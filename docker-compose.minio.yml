@@ -1,0 +1,91 @@
+version '3.6'
+
+# Replace each mongo-user with the desired username
+# Replace each mongo-pass with the desired password
+# Replace each minio-ip-address with the publicly available ip address or url without http(s)
+# Replace graphql-ip-address with the publicly available ip address or url without http(s)
+
+services
+  mongo
+    image mongo4.4
+    environment
+      MONGO_INITDB_ROOT_USERNAME 'mongo-user'
+      MONGO_INITDB_ROOT_PASSWORD 'mongo-pass'
+    volumes
+      - .datadata-mongo-cypressdatadb
+    ports
+      - 2701727017
+  director
+    image agoldissorry-cypress-directorlatest
+    environment
+      DASHBOARD_URL httplocalhost8080
+      EXECUTION_DRIVER '..executionmongodriver'
+      MONGODB_URI 'mongodbmongo-usermongo-pass@mongo27017'
+      MONGODB_DATABASE 'sorry-cypress'
+
+      SCREENSHOTS_DRIVER '..screenshotsminio.driver'
+      GITLAB_JOB_RETRIES 'false'
+      MINIO_ACCESS_KEY 'minio-user'
+      MINIO_SECRET_KEY 'minio-pass'
+      MINIO_ENDPOINT 'minio-ip-address'
+      MINIO_URL 'httpminio-ip-address'
+      MINIO_PORT '9000'
+      MINIO_USESSL 'false'
+      MINIO_BUCKET sorry-cypress
+      PROBE_LOGGER false
+    ports
+      - 12341234
+      - 90009000
+      - 90909090
+    depends_on
+      - mongo
+
+  api
+    image agoldissorry-cypress-apilatest
+    environment
+      MONGODB_URI 'mongodbmongo-usermongo-pass@mongo27017'
+      MONGODB_DATABASE 'sorry-cypress'
+      APOLLO_PLAYGROUND 'false'
+    ports
+      - 40004000
+    depends_on
+      - mongo
+
+  dashboard
+    image agoldissorry-cypress-dashboardlatest
+    environment
+      GRAPHQL_SCHEMA_URL httpgraphql-ip-address4000
+      GRAPHQL_CLIENT_CREDENTIALS ''
+      PORT 8080
+      CI_URL ''
+    ports
+      - 80808080
+    depends_on
+      - mongo
+      - api
+
+  storage
+    image miniominio
+    network_mode servicedirector
+    environment
+      MINIO_ROOT_USER 'minio-user'
+      MINIO_ROOT_PASSWORD 'minio-pass'
+    volumes
+      - .datadata-minio-cypressdata
+    command minio server --console-address 9090 data
+
+  createbuckets
+    image miniomc
+    network_mode servicedirector
+    depends_on
+      - storage
+    entrypoint 
+      binsh -c 
+      sleep 3;
+      usrbinmc config host add myminio httplocalhost9000 minio-user minio-pass;
+      usrbinmc rm -r --dangerous --force myminiosorry-cypress;
+      usrbinmc mb myminiosorry-cypress;
+      usrbinmc anonymous set download myminiosorry-cypress;
+      usrbinmc anonymous set public myminiosorry-cypress;
+      exit 0;
+      
